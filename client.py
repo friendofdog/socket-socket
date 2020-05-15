@@ -6,25 +6,49 @@ s.connect((socket.gethostname(), 1234)) # connect to IP address on port 1234
                                         # would not use gethostname if the
                                         # server is on different machine
 
+class Message:
+    def __init__(self):
+        self.content = ''
+        self.len = 0
+        self.isnew = True
+
+    def handle_new_msg(self, pck):
+        if self.isnew:
+            print(f"new message length: {pck[:HEADERSIZE]}")
+            self.len = int(pck[:HEADERSIZE])
+            self.isnew = False
+
+    def append_to_msg(self, pck):
+        print('appending:', pck)
+        self.content += pck
+
+    def handle_complete_msg(self):
+        if len(msg.content)-HEADERSIZE == msg.len:
+            print('Full message received')
+            print(msg.content[HEADERSIZE:])
+            self.isnew = True
+            self.content = ''
+
+def handle_pck():
+    pck = s.recv(16)    # limit buffer size to 16 bytes; larger messages
+                        # will be split into smaller packages
+    pck = pck.decode('utf-8')
+    return pck
+
 while True:
-    msg_full = ''
-    new_msg = True
+    msg = Message()
 
     while True:
-        msg = s.recv(16)    # limit buffer size to 16 bytes; larger messages
-                            # will be split into smaller packages
-        msg = msg.decode('utf-8')
+        pck = handle_pck()              # receive and decode package; not part
+                                        # of msg object because pck is used to
+                                        # construct props, is not a prop itself
 
-        if msg:
-            if new_msg:
-                print(f"new message length: {msg[:HEADERSIZE]}")
-                msglen = int(msg[:HEADERSIZE])
-                new_msg = False
+        if pck:
+            msg.handle_new_msg(pck)     # set len and isnow props of msg upon
+                                        # receipt of a new response
 
-            msg_full += msg
+            msg.append_to_msg(pck)      # append received package to msg
 
-            if len(msg_full)-HEADERSIZE == msglen:
-                print('Full message received')
-                print(msg_full[HEADERSIZE:])
-                new_msg = True
-                msg_full = ''
+            msg.handle_complete_msg()   # return full message and reset msg
+                                        # props to defaults when full message
+                                        # has been constructed
