@@ -11,21 +11,20 @@ while True:
     new_msg = True
 
     while True:
-        msg = s.recv(16)    # limit buffer size to 16 bits; larger messages
+        msg = s.recv(16)    # limit buffer size to 16 bytes; larger messages
                             # will be split into smaller packages
         msg = msg.decode('utf-8')
 
-        if new_msg:
-            print(f"new message length: {msg[:HEADERSIZE]}")
-            msglen = int(msg[:HEADERSIZE])
-            new_msg = False
+        if msg:
+            if new_msg:
+                print(f"new message length: {msg[:HEADERSIZE]}")
+                msglen = int(msg[:HEADERSIZE])
+                new_msg = False
 
-        msg_full += msg
+            msg_full += msg
 
-        if len(msg_full)-HEADERSIZE == msglen:
-            break
-
-    break
-
-print('Full message received')
-print(msg_full[HEADERSIZE:])
+            if len(msg_full)-HEADERSIZE == msglen:
+                print('Full message received')
+                print(msg_full[HEADERSIZE:])
+                new_msg = True
+                msg_full = ''
