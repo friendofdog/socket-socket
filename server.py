@@ -1,4 +1,5 @@
 import socket
+import time
 from config import HEADERSIZE
 
 def create_server():
@@ -16,6 +17,11 @@ def create_clientsocket():
 def make_header(msg):
     return f"{len(msg):<{HEADERSIZE}}"
 
+def telltime():
+    time.sleep(3)
+    msg = f"The time is {time.time()}"
+    header = make_header(msg)
+    msg = f"{header}" + msg
 
     c.send(bytes(msg, 'utf-8'))
 
@@ -25,6 +31,9 @@ def listen():
     msg = f"{header}" + msg
 
     c.send(bytes(msg, 'utf-8'))
+
+    while True:
+        telltime()
 
 s = create_server()
 c = create_clientsocket()
