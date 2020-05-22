@@ -1,23 +1,30 @@
 import socket
 from config import HEADERSIZE
 
-def setup():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((socket.gethostname(),1234)) # bind IP address on port 1234
-    s.listen(5)                         # queue limit for incoming connections
-    return s
+class Server:
+    def __init__(self, host=socket.gethostname(), port=1234):
+        self.s = self.create_server(host, port)
 
-def listen(s):
-    clientsocket, address = s.accept()  # if anyone connects, will accept
-                                        # these are socket and addr of client
-    print(f"Connection from {address} established")
+    def create_server(self, host, port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((host, port))
+        s.listen(5)
+        return s
 
-    msg = "Welcome to the server"
-    msg = f'{len(msg):<{HEADERSIZE}}' + msg
+    def listen(self):
+        clientsocket, address = self.s.accept()
+        print(f"Connection from {address} established")
 
-    clientsocket.send(bytes(msg, 'utf-8'))
+        text = "Welcome to the server. This is a longer message. Hello there."
+        resp = make_response(text)
+        clientsocket.send(bytes(resp, 'utf-8'))
 
-server = setup()
+def make_response(text):
+    header = f"{len(text):<{HEADERSIZE}}"
+    msg = f"{header}" + text
+    return msg
 
-while True:
-    listen(server)
+if __name__ == '__main__':
+    server = Server()
+    while True:
+        server.listen()
